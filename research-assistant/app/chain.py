@@ -4,6 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 import requests
 from bs4 import BeautifulSoup
 from langchain.schema.runnable import RunnablePassthrough
+from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 
 from dotenv import load_dotenv
 from langchain.callbacks.tracers.langchain import wait_for_all_tracers
@@ -31,6 +32,16 @@ def scrape_text(url: str):
 
 url = "https://blog.langchain.dev/announcing-langsmith/"
 
+RESULT_PER_QUESTION = 3
+
+ddg_search = DuckDuckGoSearchAPIWrapper()
+
+
+def web_search(query: str, num_results: int = RESULT_PER_QUESTION):
+    results = ddg_search.results(query, num_results)
+    return [r["link"] for r in results]
+
+
 # Text summary pipeline
 summary_template = """
 {text} 
@@ -43,13 +54,16 @@ Include all factual information, numbers, stats etc if available.
 """
 summary_prompt = ChatPromptTemplate.from_template(summary_template)
 
-chain = RunnablePassthrough.assign(
-    text = lambda x: scrape_text(x['url'])[:10000]
+scrape_and_summarize_chain = RunnablePassthrough.assign(
+    text = lambda x: scrape_text(x["url"])[:10000]
 ) | summary_prompt | ChatOpenAI() | StrOutputParser()
+
+chain = RunnablePassthrough.assign(
+    urls = lambda x: web_search(x["question"])
+) | (lambda x: [{"question": x["question"], "url": u} for u in x["urls"]]) | scrape_and_summarize_chain.map()
 
 # Main execution
 if __name__ == "__main__":
     print(chain.invoke({
-        "question": "What is langsmith?",
-        "url": url
+        "question": "What is langsmith?"
     }))
