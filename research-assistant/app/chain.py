@@ -74,12 +74,14 @@ search_question_prompt = ChatPromptTemplate.from_messages(
 
 search_question_chain = search_question_prompt | ChatOpenAI(temperature = 0) | StrOutputParser() | json.loads
 
-chain = RunnablePassthrough.assign(
+web_search_chain = RunnablePassthrough.assign(
     urls = lambda x: web_search(x["question"])
 ) | (lambda x: [{"question": x["question"], "url": u} for u in x["urls"]]) | scrape_and_summarize_chain.map()
 
+chain = search_question_chain | (lambda x: [{"question": q} for q in x]) | web_search_chain.map()
+
 # Main execution
 if __name__ == "__main__":
-    print(search_question_chain.invoke({
+    print(chain.invoke({
         "question": "What is the different between LangChian and LangSmith?"
     }))
