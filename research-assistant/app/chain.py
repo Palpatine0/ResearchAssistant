@@ -56,8 +56,10 @@ Include all factual information, numbers, stats etc if available.
 summary_prompt = ChatPromptTemplate.from_template(summary_template)
 
 scrape_and_summarize_chain = RunnablePassthrough.assign(
-    text = lambda x: scrape_text(x["url"])[:10000]
-) | summary_prompt | ChatOpenAI() | StrOutputParser()
+    summary = RunnablePassthrough.assign(
+        text = lambda x: scrape_text(x["url"])[:10000]
+    ) | summary_prompt | ChatOpenAI() | StrOutputParser()
+) | (lambda x: f"URL: {x['url']}\n\nSUMMARY: {x['summary']}")
 
 # Search pipeline
 search_question_prompt = ChatPromptTemplate.from_messages(
