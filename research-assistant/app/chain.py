@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 from langchain.schema.runnable import RunnablePassthrough
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
+import json
 
 from dotenv import load_dotenv
 from langchain.callbacks.tracers.langchain import wait_for_all_tracers
@@ -58,12 +59,27 @@ scrape_and_summarize_chain = RunnablePassthrough.assign(
     text = lambda x: scrape_text(x["url"])[:10000]
 ) | summary_prompt | ChatOpenAI() | StrOutputParser()
 
+# Search pipeline
+search_question_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "user",
+            "Write 3 google search queries to search online that form an "
+            "objective opinion from the following: {question}\n"
+            "You must respond with a list of strings in the following format: "
+            '["query 1", "query 2", "query 3"].',
+        ),
+    ]
+)
+
+search_question_chain = search_question_prompt | ChatOpenAI(temperature = 0) | StrOutputParser() | json.loads
+
 chain = RunnablePassthrough.assign(
     urls = lambda x: web_search(x["question"])
 ) | (lambda x: [{"question": x["question"], "url": u} for u in x["urls"]]) | scrape_and_summarize_chain.map()
 
 # Main execution
 if __name__ == "__main__":
-    print(chain.invoke({
-        "question": "What is langsmith?"
+    print(search_question_chain.invoke({
+        "question": "What is the different between LangChian and LangSmith?"
     }))
