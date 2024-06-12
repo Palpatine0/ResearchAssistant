@@ -4,6 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
 import json
 from langchain.retrievers import ArxivRetriever
+from langchain.pydantic_v1 import BaseModel
 
 retriever = ArxivRetriever()
 
@@ -81,9 +82,16 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain = RunnablePassthrough.assign(
-    research_summary = full_research_chain | collapse_list_of_lists
-) | prompt | ChatOpenAI() | StrOutputParser()
+
+class InputType(BaseModel):
+    question: str
+
+
+chain = (
+        RunnablePassthrough.assign(
+            research_summary = full_research_chain | collapse_list_of_lists
+        ) | prompt | ChatOpenAI() | StrOutputParser()
+).with_types(input_type = InputType)
 
 # Main execution
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from langchain.schema.runnable import RunnablePassthrough
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 import json
+from langchain.pydantic_v1 import BaseModel
 
 from dotenv import load_dotenv
 from langchain.callbacks.tracers.langchain import wait_for_all_tracers
@@ -29,7 +30,6 @@ def scrape_text(url: str):
     except Exception as e:
         print(e)
         return f"Failed to retrieve the webpage: {e}"
-
 
 
 RESULT_PER_QUESTION = 3
@@ -112,9 +112,16 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-chain = RunnablePassthrough.assign(
-    research_summary = full_research_chain | collapse_list_of_lists
-) | prompt | ChatOpenAI() | StrOutputParser()
+
+class InputType(BaseModel):
+    question: str
+
+
+chain = (
+        RunnablePassthrough.assign(
+            research_summary = full_research_chain | collapse_list_of_lists
+        ) | prompt | ChatOpenAI() | StrOutputParser()
+).with_types(input_type = InputType)
 
 # Main execution
 if __name__ == "__main__":
