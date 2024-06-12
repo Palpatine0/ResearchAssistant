@@ -31,7 +31,6 @@ def scrape_text(url: str):
         return f"Failed to retrieve the webpage: {e}"
 
 
-url = "https://blog.langchain.dev/announcing-langsmith/"
 
 RESULT_PER_QUESTION = 3
 
@@ -83,7 +82,6 @@ web_search_chain = RunnablePassthrough.assign(
 full_research_chain = search_question_chain | (lambda x: [{"question": q} for q in x]) | web_search_chain.map()
 
 
-#
 def collapse_list_of_lists(list_of_lists):
     content = []
     for l in list_of_lists:
