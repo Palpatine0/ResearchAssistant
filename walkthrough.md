@@ -42,14 +42,12 @@ First, let's set up the environment and install necessary dependencies.
 
 #### 1. LangServe Setup
 Set up LangServe to manage our application deployment.
+Use the LangServe CLI to create a new application called `research-assistant`.
 
-1. **Initialize a New LangServe Application:**
-   - Use the LangServe CLI to create a new application called `sql-research-assistant`.
+```bash
+langchain app new research-assistant
+```
 
-   Command:
-   ```bash
-   langchain app new research-assistant
-   ```
 #### 2. LangSmith Setup
 
 Make sure u have created a LangSmith project for this lab.
