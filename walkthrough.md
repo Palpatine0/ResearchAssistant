@@ -30,10 +30,11 @@ First, let's set up the environment and install necessary dependencies.
 
    Example `.env` file:
    ```plaintext
+   LANGCHAIN_API_KEY="your_langchain_api_key"
    LANGCHAIN_TRACING_V2=true
    LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
-   LANGCHAIN_API_KEY="your_langchain_api_key"
    LANGCHAIN_PROJECT="ResearchAssistant"
+   
    OPENAI_API_KEY="your_open_api_key"
    ```
 
